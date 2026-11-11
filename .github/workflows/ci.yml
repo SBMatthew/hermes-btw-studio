@@ -1,0 +1,85 @@
+name: ci
+
+on:
+  push:
+    branches: [main, v4-hermes-native]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  # Release-age quarantine (catalog rule 10): resolve nothing newer than 3 days.
+  UV_EXCLUDE_NEWER: "3 days"
+  HERMES_REF: v0.23.1
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          # Controlled matrix literal ("3.11" | "3.14"), never untrusted event input.
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Unit, security, multi-profile & read-only invariance tests (default + HERMES_PROFILE=ci)
+        run: |
+          uv pip install --system "pytest==8.3.4"
+          python -B -m pytest -p no:cacheprovider tests -q
+          HERMES_PROFILE=ci python -B -m pytest -p no:cacheprovider tests -q
+      - name: Desktop bundle parses as an ES module and passes SDK/WCAG smoke suite
+        run: |
+          node --input-type=module --check < desktop/plugin.js
+          node --test tests/desktop_smoke.mjs
+      - name: Verify zero Python bytecode or pytest cache artifacts remain on disk
+        run: |
+          python -B -c "import pathlib; bad = [str(p) for p in pathlib.Path('.').rglob('*') if '.git' not in p.parts and (p.suffix in ('.pyc', '.pyo') or p.name in ('__pycache__', '.pytest_cache'))]; assert not bad, bad"
+
+  catalog-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Hermes at the reference release
+        run: |
+          # Static HERMES_REF env pin; no untrusted github.event expressions interpolated.
+          git -c advice.detachedHead=false clone --depth 1 --branch "$HERMES_REF" https://github.com/NousResearch/hermes-agent.git hermes
+          uv sync --project ./hermes --locked --python 3.14 --group dev
+          uv pip install --python ./hermes/.venv/bin/python "pytest==8.3.4"
+      - name: Full Hermes Python 3.14 integration pytest + HERMES_PROFILE=ci
+        run: |
+          ./hermes/.venv/bin/python -B -m pytest -p no:cacheprovider ./plugin/tests --rootdir=./plugin -o addopts="" -q
+          HERMES_PROFILE=ci ./hermes/.venv/bin/python -B -m pytest -p no:cacheprovider ./plugin/tests --rootdir=./plugin -o addopts="" -q
+      - name: hermes plugins validate (0 warnings) + zero scan_plugin findings + payload & catalog YAML scan
+        run: |
+          ./hermes/.venv/bin/python -B -m hermes_cli.main plugins validate --install-deps plugin </dev/null
+          ./hermes/.venv/bin/python -B -c "import pathlib, sys; sys.path.insert(0, './hermes'); from hermes_cli.plugin_validate import validate_plugin_dir; rep = validate_plugin_dir(pathlib.Path('./plugin')); assert rep.ok and not rep.warnings and not rep.failures, rep.to_dict()"
+          ./hermes/.venv/bin/python -B -c "import pathlib, sys; sys.path.insert(0, './hermes'); from tools.plugin_guard import scan_plugin; r = scan_plugin(pathlib.Path('./plugin')); bad = [f for f in r.findings if f.severity in ('high', 'critical')]; assert r.verdict == 'safe' and not bad, (r.verdict, bad)"
+          ./hermes/.venv/bin/python -B ./hermes/scripts/scan_plugin_payloads.py ./plugin
+          ./hermes/.venv/bin/python -B -c "import pathlib; bad = [str(p) for p in pathlib.Path('./plugin').rglob('*') if '.git' not in p.parts and (p.suffix in ('.pyc', '.pyo') or p.name in ('__pycache__', '.pytest_cache'))]; assert not bad, bad"
+          mkdir -p /tmp/btw_cat_check
+          sed 's/__SHA__/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/g' ./plugin/docs/submission/btw-studio.catalog.yaml.template > /tmp/btw_cat_check/btw-studio.yaml
+          ./hermes/.venv/bin/python -B ./hermes/scripts/validate_plugin_catalog.py /tmp/btw_cat_check

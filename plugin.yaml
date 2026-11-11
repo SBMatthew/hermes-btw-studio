@@ -1,0 +1,151 @@
+name: btw-studio
+label: BTW Studio
+version: "5.8.0"
+manifest_version: 1
+kind: standalone
+description: >-
+  Side-channel session radar and /btw workspace for running Hermes turns.
+  Intercepts /btw in the composer (with attachments, opt-in voice STT/TTS,
+  opt-in media tools, and @session context) without mutating the main
+  transcript or L0 prompt cache, reads a zero-token session radar (10
+  loop-guard detectors, AST syntax checks, and cross-session file conflict
+  guard) from read-only state.db, steers conversation_id-tracked turns or
+  delegated subagents mid-flight, and retains only steer rules verified by
+  3-call Δτ behavioral contrast in BTW.md.
+author: Matheus Souza Brito (SBMatthew)
+license: MIT
+homepage: https://github.com/SBMatthew/hermes-btw-studio
+requires_hermes: ">=0.23.1"
+tags: [desktop, btw, side-question, composer, markdown, telemetry, radar, steer, subagents, self-improvement, rsi, harness, presets, cli]
+provides_tools: []
+provides_middleware: []
+provides_hooks:
+  - pre_llm_call
+  - post_llm_call
+  - pre_tool_call
+  - post_tool_call
+  - post_api_request
+  - on_session_open
+  - on_session_start
+  - on_session_end
+  - post_compaction
+  - post_curator_run
+  - subagent_start
+  - subagent_stop
+config_schema:
+  intercept_slash_btw:
+    type: bool
+    default: true
+    description: "Intercept /btw in the desktop composer and route to BTW Studio instead of appending rows to the chat transcript"
+  show_composer_banner:
+    type: bool
+    default: true
+    description: "Show the live /btw status and collapsible rich-Markdown card at the top of the composer"
+  show_statusbar_chip:
+    type: bool
+    default: true
+    description: "Show the /btw Studio chip in the desktop status bar"
+  max_history_per_session:
+    type: int
+    default: 30
+    description: "Maximum number of /btw Q&A cards retained per session (5 to 200)"
+  scan_sibling_profiles:
+    type: bool
+    default: false
+    description: "Also read (read-only) the state.db of sibling profiles under the same Hermes root for Session Compare and cross-profile drill-down. Off = active profile only."
+  verify_touched_files:
+    type: bool
+    default: true
+    description: "psi-verify: read-only syntax check (ast.parse / json.loads, never executed) of up to 8 workspace files edited in the session"
+  rsi_learning:
+    type: bool
+    default: true
+    description: "Keep evidence-backed lessons when a steer measurably helped (stored in this plugin's data folder). Off = verdicts are shown, nothing is learned."
+  growth_mode:
+    type: string
+    default: "lite"
+    description: "Playbook integration scope for BTW.md and generated skills: 'isolated' (plugin data_dir only, zero prompt bytes), 'lite' (compact domain index at session start + on-demand skills), or 'full' (full BTW.md section at session start + automatic skill files in data_dir)"
+  btw_md_max_chars:
+    type: int
+    default: 4000
+    description: "Maximum character budget for the BTW.md verified workflow playbook (1000 to 16000 chars in 1K UI steps; up to 64000 via config)"
+  auto_learn_mode:
+    type: string
+    default: "lite"
+    description: "Automatic BTW.md consolidation cadence: 'off', 'lite' ($0 deterministic deduplication), 'medium', or 'full'"
+  auto_learn_hook:
+    type: bool
+    default: true
+    description: "Run automatic BTW.md consolidation on session lifecycle hooks when auto_learn_mode is active"
+  auto_learn_cron_minutes:
+    type: int
+    default: 0
+    description: "Optional periodic consolidation interval in minutes (0 = disabled, 15, 30, or 60)"
+  memory_md_sync_mode:
+    type: string
+    default: "off"
+    description: "Opt-in bounded block synthesis into Hermes MEMORY.md: 'off' (default, zero writes outside data_dir), 'auto', '5', '10', '15', '20', or '25' (% of MEMORY.md budget)"
+  session_mesh_guard:
+    type: bool
+    default: true
+    description: "Detect concurrent sibling sessions touching overlapping files and line ranges in state.db?mode=ro ($0)"
+  allow_web_search:
+    type: bool
+    default: false
+    description: "Allow user-initiated /btw side-questions to dispatch host web_search, web_extract, and browser_exec via ctx.dispatch_tool (default false = local session context only)"
+  allow_media_tools:
+    type: bool
+    default: false
+    description: "Allow user-initiated /btw requests to dispatch host image_generate, vision_analyze, video_generate, video_analyze, and text_to_speech via ctx.dispatch_tool (default false = opt-in)"
+  dictation_engine:
+    type: string
+    default: "auto"
+    description: "Voice dictation STT engine for the /btw composer: 'auto' (host agent.transcription_provider, Nous audio gateway, Groq/OpenAI Whisper via agent.secret_scope, Web Speech API, or local Faster-Whisper when stt.provider='local'), 'nous', 'webspeech', or 'backend'"
+  wake_word_enabled:
+    type: bool
+    default: false
+    description: "Enable hands-free wake-word detection ('by the way') to trigger BTW Studio Dictate or Live Talk (default false = opt-in)"
+  wake_phrase:
+    type: string
+    default: "by the way"
+    description: "Spoken trigger phrase for BTW Studio wake-word spotter (Sherpa-ONNX BPE keyword spotter + STT matcher)"
+  wake_target_mode:
+    type: string
+    default: "live"
+    description: "Action triggered when wake-word ('by the way') is detected: 'live' (Live Voice Talk) or 'dictate' (Voice Dictation STT into /btw composer)"
+  live_voice_enabled:
+    type: bool
+    default: false
+    description: "Enable continuous full-duplex / hands-free Live Voice Chat loop in BTW Studio with automatic VAD and TTS playback"
+  tts_auto_speak:
+    type: bool
+    default: false
+    description: "Automatically speak /btw side-channel answers aloud via host-configured Hermes TTS (text_to_speech, Nous/OpenAI audio gateway via agent.secret_scope, or optional edge_tts when provider='edge') when voice or live mode is used"
+  tts_voice:
+    type: string
+    default: "coral"
+    description: "Default voice for BTW Studio Text-to-Speech synthesis (alloy, ash, ballad, coral, echo, fable, onyx, nova, sage, shimmer, verse)"
+  tts_model:
+    type: string
+    default: "gpt-4o-mini-tts"
+    description: "Default TTS model slug for host-configured TTS synthesis (gpt-4o-mini-tts, tts-1, tts-1-hd)"
+  gamify_enabled:
+    type: bool
+    default: false
+    description: "Opt-in Playbook Milestones in Settings and Learn tab (tracks BTW.md rules, /btw cards, helped steers, subagents, voice dictation, and media; disabled by default)"
+  personality:
+    type: string
+    default: "balanced"
+    description: "Default 6-axis cognitive reading lens profile ('balanced', 'neurodivergent', 'technical', 'anxious', 'kawaii', 'harness_rsi')"
+  fast_provider:
+    type: string
+    default: ""
+    description: "Optional custom provider override for the btw_studio_fast auxiliary slot (inherits from host when empty)"
+  fast_model:
+    type: string
+    default: ""
+    description: "Optional custom model slug override for the btw_studio_fast auxiliary slot"
+  fast_base_url:
+    type: string
+    default: ""
+    description: "Optional custom OpenAI-compatible base_url for the fast observer (restricted to https:// or loopback http://localhost, SSRF-validated with HTTP 30x redirects disabled)"

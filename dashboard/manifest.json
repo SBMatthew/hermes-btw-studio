@@ -1,0 +1,8 @@
+{
+  "name": "btw-studio",
+  "label": "BTW Studio",
+  "description": "Backend routes for BTW Studio: read-only zero-token telemetry (state.db), 10-detector Harness² loop guard, Δτ steer-verdict probes, lesson library, session mesh, subagent fleet, and multimodal side-question answering.",
+  "version": "5.8.0",
+  "tab": { "hidden": true },
+  "api": "plugin_api.py"
+}

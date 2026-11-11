@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360">
+  <defs>
+    <style>
+      .sans { font-family: system-ui, -apple-system, 'Segoe UI', Inter, sans-serif; }
+      .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+      @keyframes radarSweep {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes pulseGlow {
+        0%, 100% { opacity: 0.45; transform: scale(0.96); }
+        50% { opacity: 1.0; transform: scale(1.04); }
+      }
+      @keyframes dashFlow {
+        to { stroke-dashoffset: -48; }
+      }
+      @keyframes waveBar {
+        0%, 100% { transform: scaleY(0.35); }
+        50% { transform: scaleY(1.0); }
+      }
+      .sweep-beam {
+        transform-origin: 180px 180px;
+        animation: radarSweep 6s linear infinite;
+      }
+      .flow-line {
+        stroke-dasharray: 8 6;
+        animation: dashFlow 1.4s linear infinite;
+      }
+      .pulse-node {
+        transform-origin: center;
+        animation: pulseGlow 2.4s ease-in-out infinite;
+      }
+      .bar1 { transform-origin: 640px 268px; animation: waveBar 0.9s ease-in-out infinite; }
+      .bar2 { transform-origin: 648px 268px; animation: waveBar 0.9s ease-in-out 0.15s infinite; }
+      .bar3 { transform-origin: 656px 268px; animation: waveBar 0.9s ease-in-out 0.3s infinite; }
+      .bar4 { transform-origin: 664px 268px; animation: waveBar 0.9s ease-in-out 0.45s infinite; }
+      .bar5 { transform-origin: 672px 268px; animation: waveBar 0.9s ease-in-out 0.6s infinite; }
+    </style>
+    <linearGradient id="bgAnim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#040711"/>
+      <stop offset="50%" stop-color="#081226"/>
+      <stop offset="100%" stop-color="#050A17"/>
+    </linearGradient>
+    <radialGradient id="sweepGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.38"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1280" height="360" rx="20" fill="url(#bgAnim)" stroke="#00E5FF" stroke-opacity="0.5" stroke-width="2"/>
+
+  <!-- Stage 1: Orbital Read-Only Radar (Left, cx=180, cy=180) -->
+  <circle cx="180" cy="180" r="112" fill="#050B18" stroke="#00E5FF" stroke-opacity="0.4" stroke-width="1.5"/>
+  <circle cx="180" cy="180" r="76" fill="none" stroke="#38BDF8" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="4 4"/>
+  <circle cx="180" cy="180" r="40" fill="none" stroke="#38BDF8" stroke-opacity="0.25" stroke-width="1"/>
+  <line x1="68" y1="180" x2="292" y2="180" stroke="#1E293B" stroke-width="1"/>
+  <line x1="180" y1="68" x2="180" y2="292" stroke="#1E293B" stroke-width="1"/>
+  <g class="sweep-beam">
+    <path d="M 180 180 L 180 68 A 112 112 0 0 1 278 126 Z" fill="url(#sweepGrad)"/>
+    <line x1="180" y1="180" x2="180" y2="68" stroke="#00E5FF" stroke-width="2.5"/>
+  </g>
+  <circle cx="218" cy="134" r="5" fill="#34D399"/>
+  <circle cx="136" cy="212" r="5" fill="#F59E0B"/>
+  <circle cx="180" cy="180" r="7" fill="#F43F5E"/>
+  <text x="180" y="324" text-anchor="middle" class="mono" font-size="13" font-weight="700" fill="#00E5FF">1. OBSERVE ($0 state.db?mode=ro)</text>
+
+  <!-- Animated Flow Line 1 -> 2 -->
+  <path d="M 304 180 H 436" fill="none" stroke="#00E5FF" stroke-width="3" class="flow-line"/>
+  <text x="370" y="166" text-anchor="middle" class="mono" font-size="11" fill="#67E8F9">0 cache bust</text>
+
+  <!-- Stage 2: Multimodal /btw + Opt-In Voice STT/TTS + 6-Axis Reading Lens (Center, x=446, w=388) -->
+  <rect x="446" y="54" width="388" height="236" rx="16" fill="#081328" stroke="#38BDF8" stroke-opacity="0.6" stroke-width="1.6"/>
+  <text x="640" y="84" text-anchor="middle" class="mono" font-size="12.5" font-weight="700" fill="#67E8F9">COMPOSER-FIRST /BTW + 6-AXIS LENS</text>
+  <!-- 6D Hexagon inside Stage 2 -->
+  <g transform="translate(540, 168)">
+    <polygon points="0,-46 40,-23 40,23 0,46 -40,23 -40,-23" fill="#050B16" stroke="#334155" stroke-width="1.2"/>
+    <polygon points="0,-40 36,-20 34,20 0,38 -35,20 -37,-21" fill="#00E5FF" fill-opacity="0.28" stroke="#00E5FF" stroke-width="2"/>
+  </g>
+  <text x="620" y="138" class="sans" font-size="12.5" font-weight="700" fill="#F8FAFC">• Multimodal PDF/Audio/Images</text>
+  <text x="620" y="162" class="sans" font-size="12.5" font-weight="700" fill="#34D399">• Opt-In Voice STT &amp; TTS</text>
+  <text x="620" y="186" class="sans" font-size="12.5" font-weight="700" fill="#FBBF24">• ⚡ Synthesize &amp; Dispatch Steer</text>
+  <text x="620" y="210" class="sans" font-size="12.5" font-weight="700" fill="#C4B5FD">• Inline Image &amp; Video Deck</text>
+  <!-- Animated Voice Waveform Pill -->
+  <rect x="520" y="242" width="240" height="32" rx="16" fill="#06241C" stroke="#10B981" stroke-width="1.2"/>
+  <rect x="638" y="250" width="4" height="16" rx="2" fill="#34D399" class="bar1"/>
+  <rect x="646" y="248" width="4" height="20" rx="2" fill="#34D399" class="bar2"/>
+  <rect x="654" y="246" width="4" height="24" rx="2" fill="#34D399" class="bar3"/>
+  <rect x="662" y="248" width="4" height="20" rx="2" fill="#34D399" class="bar4"/>
+  <rect x="670" y="250" width="4" height="16" rx="2" fill="#34D399" class="bar5"/>
+  <text x="580" y="262" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#34D399">🎙️ LIVE STT</text>
+  <text x="716" y="262" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#6EE7B7">session.steer</text>
+  <text x="640" y="324" text-anchor="middle" class="mono" font-size="13" font-weight="700" fill="#FBBF24">2. DIAGNOSE &amp; STEER IN-FLIGHT</text>
+
+  <!-- Animated Flow Line 2 -> 3 -->
+  <path d="M 844 180 H 966" fill="none" stroke="#34D399" stroke-width="3" class="flow-line"/>
+  <text x="905" y="166" text-anchor="middle" class="mono" font-size="11" fill="#34D399">Δτ &gt; 0</text>
+
+  <!-- Stage 3: Harness² Δτ Verification, BTW.md, SKILL.md, MEMORY.md & Companion Telemetry (Right, x=976, w=264) -->
+  <rect x="976" y="54" width="264" height="236" rx="16" fill="#081328" stroke="#10B981" stroke-opacity="0.65" stroke-width="1.6"/>
+  <text x="1108" y="84" text-anchor="middle" class="mono" font-size="12.5" font-weight="700" fill="#34D399">COMPANION &amp; TELEMETRY</text>
+  <rect x="996" y="100" width="224" height="36" rx="8" fill="#06241C" stroke="#10B981" stroke-width="1"/>
+  <text x="1108" y="123" text-anchor="middle" class="mono" font-size="12" font-weight="700" fill="#34D399">📘 BTW.md Playbook (1K–16K)</text>
+  <rect x="996" y="146" width="224" height="36" rx="8" fill="#17102A" stroke="#A78BFA" stroke-width="1"/>
+  <text x="1108" y="169" text-anchor="middle" class="mono" font-size="12" font-weight="700" fill="#DDD6FE">🧬 Auto-Molded SKILL.md</text>
+  <rect x="996" y="192" width="224" height="36" rx="8" fill="#0D1D3A" stroke="#00E5FF" stroke-width="1"/>
+  <text x="1108" y="215" text-anchor="middle" class="mono" font-size="12" font-weight="700" fill="#67E8F9">🧠 MEMORY.md Dynamic %</text>
+  <rect x="996" y="238" width="224" height="36" rx="8" fill="#231707" stroke="#F59E0B" stroke-width="1"/>
+  <text x="1108" y="261" text-anchor="middle" class="mono" font-size="12" font-weight="700" fill="#FBBF24">🏆 12 Playbook Milestones</text>
+  <text x="1108" y="324" text-anchor="middle" class="mono" font-size="13" font-weight="700" fill="#34D399">3. KEEP PROVEN RULES ($0)</text>
+</svg>
